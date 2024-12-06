@@ -21,7 +21,7 @@
   "result" : "people",
   "scenario" : "",
   "actualResult" : "People walking in the rain",
-  "status" : "Pass"
+  "status" : "Fail"
 }, {
   "test_number" : "05",
   "result" : "people on street",
@@ -111,7 +111,7 @@
   "result" : "broken toilets",
   "scenario" : "",
   "actualResult" : "Broken toilets in a room",
-  "status" : "Pass"
+  "status" : "Fail"
 }, {
   "test_number" : "21",
   "result" : "wooden bench",

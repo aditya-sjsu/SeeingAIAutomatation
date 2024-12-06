@@ -13,30 +13,23 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Duration;
+import java.util.*;
 
-class PassFail {
+class PassFailMetrics {
     private float pass;
     private float fail;
 
-    public PassFail(float pass, float fail) {
+    public PassFailMetrics(float pass, float fail) {
         this.pass = pass;
         this.fail = fail;
     }
@@ -63,157 +56,195 @@ class PassFail {
     }
 }
 
+class TestCase {
+    @JsonProperty("test_number")
+    private String testNumber;
+
+    @JsonProperty("result")
+    private String expectedResult;
+
+    @JsonProperty("scenario")
+    private String scenario;
+
+    @JsonProperty("actualResult")
+    private String actualResult;
+
+    @JsonProperty("status")
+    private String status;
+
+    public TestCase() {}
+
+    public TestCase(String testNumber, String expectedResult, String scenario, String actualResult, String status) {
+        this.testNumber = testNumber;
+        this.expectedResult = expectedResult;
+        this.scenario = scenario;
+        this.actualResult = actualResult;
+        this.status = status;
+    }
+
+    public String getTestNumber() {
+        return testNumber;
+    }
+
+    public void setTestNumber(String testNumber) {
+        this.testNumber = testNumber;
+    }
+
+    public String getExpectedResult() {
+        return expectedResult;
+    }
+
+    public void setExpectedResult(String expectedResult) {
+        this.expectedResult = expectedResult;
+    }
+
+    public String getScenario() {
+        return scenario;
+    }
+
+    public void setScenario(String scenario) {
+        this.scenario = scenario;
+    }
+
+    public String getActualResult() {
+        return actualResult;
+    }
+
+    public void setActualResult(String actualResult) {
+        this.actualResult = actualResult;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        return "TestCase{" +
+                "testNumber='" + testNumber + '\'' +
+                ", expectedResult='" + expectedResult + '\'' +
+                ", scenario='" + scenario + '\'' +
+                ", actualResult='" + actualResult + '\'' +
+                ", status='" + status + '\'' +
+                '}';
+    }
+}
 
 public class SeeingAITest {
-    public static AppiumDriver driver;
-    public static int totalTests = 20;
-    public static int passCount = 0;
-    public static int failCount = 0;
-    public static Set<String> objectSet = new HashSet<>();
-    public static Map<String, PassFail> scenarioMap = new HashMap<>();
+    private static AppiumDriver driver;
+    private static final int totalTests = 20;
+    private static int passCount = 0;
+    private static int failCount = 0;
+    private static final Set<String> objectSet = new HashSet<>();
+    private static final Map<String, PassFailMetrics> scenarioMetrics = new HashMap<>();
 
     public static void main(String[] args) {
-        appiumTest();
-        double passRate = (double) passCount / totalTests * 100;
-
-        System.out.println("");
-        System.out.println("XXXXXXXXXXXXXXXXXXX");
-        System.out.println("");
-        System.out.println("Test Statistics -----------------------------");
-        System.out.println("Pass: " + passCount + " | Fail: " + failCount  + " | Total: " + totalTests );
-        System.out.println("Pass %: " + passRate + "%");
-        System.out.println("");
-        System.out.println("XXXXXXXXXXXXXXXXXXX");
-        System.out.println("");
-        System.out.println("Test Coverage -----------------------------");
-        for(String object : objectSet)
-        {
-            System.out.print(object + " | ");
-        }
-        System.out.println("\n");
-        System.out.println("XXXXXXXXXXXXXXXXXXX");
-        System.out.println("");
-        System.out.println("Test Quality Assurance Criteria -----------------------------");
-        System.out.println("A test is considered to be passed if the actual output given by the application has a"
-                + " substring\n of the expected output that is given in the expected_outputs.json file.\n If this cindition"
-                + " is not satisfied the test is considered to fail");
-        System.out.println("");
-        System.out.println("XXXXXXXXXXXXXXXXXXX");
-        System.out.println("");
-        System.out.println("Test Summary -----------------------------");
-        System.out.println("The script ran tests for total "+totalTests+" test cases out of which "+ passRate+"% passed");
-        System.out.println("The summary for various scenarios is listed below:");
-        for (String key : scenarioMap.keySet()) {
-            PassFail value = scenarioMap.get(key);
-            float passPercent = (value.getPass()/( value.getPass() + value.getFail() )) * 100;
-            float failPercent = (value.getFail()/( value.getPass() + value.getFail() )) * 100;
-            // Do something with key and value
-            System.out.println("Scenario: " + key + " | Pass%:  " + passPercent + " | Fail%:  " + failPercent + " | Total:  " + (value.getPass() + value.getFail()) );
-            System.out.println("");
-        }
-
+        executeAppiumTests();
+        generateTestSummary();
     }
 
-    public static void appiumTest() {
-        DesiredCapabilities caps = new DesiredCapabilities();
-        caps.setCapability("platformName", "android");
-        caps.setCapability("platformVersion", "13");
-        caps.setCapability("deviceName", "pixel8");
-        // caps.setCapability("udid", "emulator-5554");
-        caps.setCapability("automationName", "UiAutomator2");
-        caps.setCapability("appPackage", "com.microsoft.seeingai");
-        caps.setCapability("appActivity", "crc64a8457ff90b487ee0.SplashActivity");
+    private static void executeAppiumTests() {
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        capabilities.setCapability("platformName", "android");
+        capabilities.setCapability("platformVersion", "13");
+        capabilities.setCapability("deviceName", "pixel8");
+        capabilities.setCapability("automationName", "UiAutomator2");
+        capabilities.setCapability("appPackage", "com.microsoft.seeingai");
+        capabilities.setCapability("appActivity", "crc64a8457ff90b487ee0.SplashActivity");
 
-         List<TestCase> testCases = readTestCasesFromFile();
+        List<TestCase> testCases = readTestCasesFromJson();
 
         try {
-            URL url = new URL("http://127.0.0.1:4723/wd/hub/");
-//            URL url = new URL("http://127.0.0.1:4723/");
-            driver = new AndroidDriver(url, caps);
-//            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+            driver = new AndroidDriver(new URL("http://127.0.0.1:4723/wd/hub"), capabilities);
             WebDriverWait wait = new WebDriverWait(driver, 30);
 
-            skipButton(wait);
-            acceptTerms(wait);
-            getStarted(wait);
-            handlePermissionDialog(wait);
-            closeOverlay(wait);
-            navigateToHome();
-            selectPhoto(wait);
-
-             for (int i = 0; i < totalTests; i++) {
-                 sharePhoto(wait);
-                 TestCase testcase = testCases.get(i);
-                 getResults(wait, testcase);
-                 testcase.setStatus(compareResults(testcase.getResult(), testcase.getScenario()));
-                 goBack(wait);
-                 swipeToNextImage();
-                 objectSet.add(testcase.getResult());
-             }
-
-             navigateToHome();
-             writeTestCasesToFile(testCases);
+            setupInitialAppFlow(wait);
+            runTests(wait, testCases);
+            saveTestResults(testCases);
 
         } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Invalid Appium server URL", e);
         }
     }
 
-    private static void getResults(WebDriverWait wait, TestCase testcase) {
-        WebElement element = wait.until(ExpectedConditions.elementToBeClickable(By.id("com.microsoft.seeingai:id/result_cell_text")));
-        String actualResult = element.getText();
-        testcase.setActualResult(actualResult);
-        System.out.println("TestCase No.: " + testcase.getTest_number() );
-        System.out.println("Scenario: " + testcase.getScenario());
-        System.out.println("Expected Result: " + testcase.getResult());
-        System.out.println("Actual Result: " + actualResult);
+    private static void setupInitialAppFlow(WebDriverWait wait) {
+        clickButton(wait, "com.microsoft.seeingai:id/pagedSkipButton");
+        clickButton(wait, "com.microsoft.seeingai:id/terms_check_box");
+        clickButton(wait, "com.microsoft.seeingai:id/terms_getstarted_button");
+        clickButton(wait, "com.android.permissioncontroller:id/permission_allow_foreground_only_button");
+        clickButton(wait, "com.microsoft.seeingai:id/close_icon_bottom_sheet");
     }
 
-    private static String compareResults(String expectedResult, String scenario) {
-        WebElement element = driver.findElement(By.id("com.microsoft.seeingai:id/result_cell_text"));
-        String actualResult = element.getText().toLowerCase();
-        boolean pass = true;
-        if (!actualResult.contains(expectedResult)) {
-            pass = false;
+    private static void runTests(WebDriverWait wait, List<TestCase> testCases) {
+        navigateToHomeScreen();
+        selectPhoto(wait);
+
+        for (int i = 0; i < totalTests; i++) {
+            sharePhoto(wait);
+            TestCase testCase = testCases.get(i);
+            processTestCase(wait, testCase);
+            objectSet.add(testCase.getActualResult());
+            navigateToPreviousScreen(wait);
+            swipeToNextImage();
         }
-        PassFail obj = scenarioMap.get(scenario);
-        if (pass) {
+    }
+
+    private static void selectPhoto(WebDriverWait wait) {
+        try {
+            WebElement fileApp = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//android.widget.TextView[@content-desc=\"Photos\"]")));
+            fileApp.click();
+
+            WebElement photo1 = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//android.widget.ImageView[@content-desc=\"Photo taken on Dec 5, 2024 1:39 AM\"]")));
+            photo1.click();
+        } catch (Exception e) {
+            System.out.println("Error selecting photo.");
+            throw e;
+        }
+    }
+
+    private static void sharePhoto(WebDriverWait wait) {
+        try {
+            WebElement shareButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("com.google.android.apps.photos:id/share")));
+            shareButton.click();
+
+            WebElement appToShare = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("(//android.widget.RelativeLayout[@resource-id=\"com.google.android.apps.photos:id/peoplekit_new_app_item\"])[1]")));
+            appToShare.click();
+        } catch (Exception e) {
+            System.out.println("Error during sharing.");
+            throw e;
+        }
+    }
+
+    private static void processTestCase(WebDriverWait wait, TestCase testCase) {
+        WebElement resultElement = wait.until(ExpectedConditions.elementToBeClickable(By.id("com.microsoft.seeingai:id/result_cell_text")));
+        String actualResult = resultElement.getText();
+        testCase.setActualResult(actualResult);
+
+        boolean isPass = actualResult.contains(testCase.getExpectedResult());
+        if (isPass) {
             passCount++;
-            System.out.println("Pass");
-            obj.setPass(obj.getPass()+1);
-            return "Pass";
+            scenarioMetrics.computeIfAbsent(testCase.getScenario(), k -> new PassFailMetrics(0, 0)).setPass(scenarioMetrics.get(testCase.getScenario()).getPass() + 1);
+            testCase.setStatus("Pass");
         } else {
             failCount++;
-            System.out.println("Fail");
-            obj.setFail(obj.getFail()+1);
-            return "Fail";
+            scenarioMetrics.computeIfAbsent(testCase.getScenario(), k -> new PassFailMetrics(0, 0)).setFail(scenarioMetrics.get(testCase.getScenario()).getFail() + 1);
+            testCase.setStatus("Fail");
         }
     }
 
-    private static List<TestCase> readTestCasesFromFile() {
-        ObjectMapper objectMapper = new ObjectMapper();
+    private static List<TestCase> readTestCasesFromJson() {
+        ObjectMapper mapper = new ObjectMapper();
         List<TestCase> testCases = new ArrayList<>();
-
         try {
-            // Read JSON file
-            JsonNode jsonNode = objectMapper.readTree(new File("expected_outputs.json"));
-
-            JsonNode testCasesNode = jsonNode.get("test_cases");
-
-            for (JsonNode testCaseNode : testCasesNode) {
-                TestCase testCase = objectMapper.treeToValue(testCaseNode, TestCase.class);
+            JsonNode rootNode = mapper.readTree(new File("expected_outputs.json")).get("test_cases");
+            for (JsonNode node : rootNode) {
+                TestCase testCase = mapper.treeToValue(node, TestCase.class);
                 testCases.add(testCase);
-                if(!scenarioMap.containsKey(testCase.getScenario()))
-                {
-                    scenarioMap.put(testCase.getScenario(), new PassFail(0,0));
-                }
-            }
-
-            // Print the test cases
-            for (TestCase testCase : testCases) {
-                System.out.println(testCase);
+                scenarioMetrics.putIfAbsent(testCase.getScenario(), new PassFailMetrics(0, 0));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -221,76 +252,52 @@ public class SeeingAITest {
         return testCases;
     }
 
-    private static void writeTestCasesToFile(List<TestCase> testCases) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT); // Enable pretty printing
+    private static void saveTestResults(List<TestCase> testCases) {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
         try {
-            objectMapper.writeValue(new File("actual_outputs.json"), testCases);
-            System.out.println("Test cases have been written to actual_outputs.json successfully.");
+            mapper.writeValue(new File("actual_outputs.json"), testCases);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static void skipButton(WebDriverWait wait) {
-        WebElement skipButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("com.microsoft.seeingai:id/pagedSkipButton")));
-        skipButton.click();
+    private static void clickButton(WebDriverWait wait, String elementId) {
+        WebElement button = wait.until(ExpectedConditions.elementToBeClickable(By.id(elementId)));
+        button.click();
     }
 
-    private static void acceptTerms(WebDriverWait wait) {
-        WebElement termsCheckBox = wait.until(ExpectedConditions.elementToBeClickable(By.id("com.microsoft.seeingai:id/terms_check_box")));
-        termsCheckBox.click();
-    }
-
-    private static void getStarted(WebDriverWait wait) {
-        WebElement getStartedButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("com.microsoft.seeingai:id/terms_getstarted_button")));
-        getStartedButton.click();
-    }
-
-    private static void handlePermissionDialog(WebDriverWait wait) {
-        WebElement allowButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("com.android.permissioncontroller:id/permission_allow_foreground_only_button")));
-        allowButton.click();
-    }
-
-    private static void closeOverlay(WebDriverWait wait) {
-        WebElement closeButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("com.microsoft.seeingai:id/close_icon_bottom_sheet")));
-        closeButton.click();
-    }
-
-    private static void navigateToHome() {
+    private static void navigateToHomeScreen() {
         ((AndroidDriver) driver).pressKey(new KeyEvent(AndroidKey.HOME));
-        System.out.println("At Home");
     }
 
-    private static void selectPhoto(WebDriverWait wait) {
-        WebElement fileApp = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//android.widget.TextView[@content-desc=\"Photos\"]")));
-        fileApp.click();
-        System.out.println("In Photos App");
-
-        WebElement photo1 = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//android.widget.ImageView[@content-desc=\"Photo taken on Dec 5, 2024 1:39 AM\"]")));
-        photo1.click();
-    }
-
-    private static void sharePhoto(WebDriverWait wait) {
-        WebElement shareButton2 = wait.until(ExpectedConditions.elementToBeClickable(By.id("com.google.android.apps.photos:id/share")));
-        shareButton2.click();
-        WebElement appToShare = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("(//android.widget.RelativeLayout[@resource-id=\"com.google.android.apps.photos:id/peoplekit_new_app_item\"])[1]")));
-        appToShare.click();
-        System.out.println("Sharing Image to SeeingAI");
-    }
-
-    private static void goBack(WebDriverWait wait) {
+    private static void navigateToPreviousScreen(WebDriverWait wait) {
         WebElement backButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//android.widget.ImageButton[@content-desc=\"Navigate up\"]")));
         backButton.click();
     }
 
-
-    private static void swipeToNextImage() throws InterruptedException {
-        Thread.sleep(1000);
-        TouchAction ta = new TouchAction((PerformsTouchActions) driver);
-        ta.press(PointOption.point(900, 1200)).waitAction(WaitOptions.waitOptions(Duration.ofMillis(1000))).moveTo(PointOption.point(100, 1200)).release().perform();
-        Thread.sleep(1000);
-        System.out.println("swiped to next Image------------------");
+    private static void swipeToNextImage() {
+        new TouchAction<>((PerformsTouchActions) driver)
+                .press(PointOption.point(900, 1200))
+                .waitAction(WaitOptions.waitOptions(Duration.ofSeconds(1)))
+                .moveTo(PointOption.point(100, 1200))
+                .release()
+                .perform();
     }
 
+    private static void generateTestSummary() {
+        double passRate = (double) passCount / totalTests * 100;
+
+        System.out.println("Pass: " + passCount + " | Fail: " + failCount + " | Total: " + totalTests);
+        System.out.println("Pass Rate: " + passRate + "%");
+
+        scenarioMetrics.forEach((scenario, metrics) -> {
+            float total = metrics.getPass() + metrics.getFail();
+            float passPercentage = (metrics.getPass() / total) * 100;
+            float failPercentage = (metrics.getFail() / total) * 100;
+            System.out.println("Scenario: " + scenario + " | Pass: " + passPercentage + "% | Fail: " + failPercentage + "%");
+        });
+    }
 }
+
+
