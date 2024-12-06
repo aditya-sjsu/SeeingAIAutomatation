@@ -1,0 +1,121 @@
+[ {
+  "test_number" : "01",
+  "result" : "traffic light",
+  "scenario" : "",
+  "actualResult" : "A close-up of a traffic light",
+  "status" : "Pass"
+}, {
+  "test_number" : "02",
+  "result" : "grassy area",
+  "scenario" : "",
+  "actualResult" : "A tree in a grassy area",
+  "status" : "Pass"
+}, {
+  "test_number" : "03",
+  "result" : "stop sign",
+  "scenario" : "",
+  "actualResult" : "A stop sign on a road",
+  "status" : "Pass"
+}, {
+  "test_number" : "04",
+  "result" : "people",
+  "scenario" : "",
+  "actualResult" : "People walking in the rain",
+  "status" : "Pass"
+}, {
+  "test_number" : "05",
+  "result" : "people on street",
+  "scenario" : "",
+  "actualResult" : "A group of people walking down a street",
+  "status" : "Fail"
+}, {
+  "test_number" : "06",
+  "result" : "cars",
+  "scenario" : "",
+  "actualResult" : "A group of cars on a snowy road",
+  "status" : "Pass"
+}, {
+  "test_number" : "07",
+  "result" : "parking meter",
+  "scenario" : "",
+  "actualResult" : "A parking meter on a street",
+  "status" : "Pass"
+}, {
+  "test_number" : "08",
+  "result" : "bicycle sign",
+  "scenario" : "",
+  "actualResult" : "A bicycle painted on the road",
+  "status" : "Fail"
+}, {
+  "test_number" : "09",
+  "result" : "bicycles parked",
+  "scenario" : "",
+  "actualResult" : "A row of bicycles parked on a sidewalk",
+  "status" : "Pass"
+}, {
+  "test_number" : "10",
+  "result" : "fruits",
+  "scenario" : "",
+  "actualResult" : "A grocery store with lots of fruits",
+  "status" : "Pass"
+}, {
+  "test_number" : "11",
+  "result" : "shoes on shelves",
+  "scenario" : "",
+  "actualResult" : "A display of shoes on shelves",
+  "status" : "Pass"
+}, {
+  "test_number" : "12",
+  "result" : "laptop",
+  "scenario" : "",
+  "actualResult" : "A laptop and a price tag on a table",
+  "status" : "Pass"
+}, {
+  "test_number" : "13",
+  "result" : "shoe box",
+  "scenario" : "",
+  "actualResult" : "A red shoe box with white logo",
+  "status" : "Pass"
+}, {
+  "test_number" : "14",
+  "result" : "couch",
+  "scenario" : "",
+  "actualResult" : "A living room with a couch and a table",
+  "status" : "Pass"
+}, {
+  "test_number" : "15",
+  "result" : "table and chair",
+  "scenario" : "",
+  "actualResult" : "A white table and black chairs in a library",
+  "status" : "Fail"
+}, {
+  "test_number" : "16",
+  "result" : "blackboard",
+  "scenario" : "",
+  "actualResult" : "A blackboard in a classroom",
+  "status" : "Pass"
+}, {
+  "test_number" : "17",
+  "result" : "table and chairs",
+  "scenario" : "",
+  "actualResult" : "A burned table and chairs in a room",
+  "status" : "Pass"
+}, {
+  "test_number" : "18",
+  "result" : "bed",
+  "scenario" : "",
+  "actualResult" : "A bed with a lamp and a window",
+  "status" : "Pass"
+}, {
+  "test_number" : "20",
+  "result" : "broken toilets",
+  "scenario" : "",
+  "actualResult" : "Broken toilets in a room",
+  "status" : "Pass"
+}, {
+  "test_number" : "21",
+  "result" : "wooden bench",
+  "scenario" : "",
+  "actualResult" : "A wooden bench on a sidewalk",
+  "status" : "Pass"
+} ]
